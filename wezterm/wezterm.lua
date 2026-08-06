@@ -67,6 +67,17 @@ config.mouse_bindings = {
 -- foreground process it sees is always the tmux client, never the pane's.
 config.keys = {
 	{ key = "Insert", mods = "SHIFT", action = wezterm.action.PasteFrom("Clipboard") },
+
+	-- Shift+Enter inserts a newline in Claude Code's prompt instead of submitting.
+	-- WezTerm can report Shift+Enter distinctly, but only under modifyOtherKeys=2.
+	-- Claude Code asks its own terminal for level 2; inside tmux that request stops
+	-- at tmux, and tmux 3.4 in turn asks WezTerm for level *1* (Eneks=\E[>4;1m, see
+	-- `tmux info`) -- a level whose definition exempts Return. So Shift+Enter
+	-- arrives at tmux as a bare CR and no amount of extended-keys config recovers
+	-- it. ESC+CR is what Claude Code's own /terminal-setup writes for VS Code, the
+	-- prompt reads it as "newline" with no protocol negotiation involved, and tmux
+	-- forwards it untouched as M-Enter.
+	{ key = "Enter", mods = "SHIFT", action = wezterm.action.SendString("\x1b\r") },
 }
 
 -- Open centered at a fraction of the screen. The default window is 80x24 cells,
