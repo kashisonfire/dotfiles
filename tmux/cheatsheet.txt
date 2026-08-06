@@ -1,0 +1,44 @@
+
+  TMUX KEYS              prefix = C-a
+  ──────────────────────────────────────
+  C-a C-a  sends a literal C-a to bash
+           (beginning-of-line still works)
+
+  PANES
+    C-a |        split side-by-side
+    C-a -        split stacked
+    M-← ↑ ↓ →    move between panes
+    C-a z        zoom pane in / out
+    C-a x        close pane
+    C-a M-← ↑ ↓ →  resize by 5
+    C-a { }      swap pane back / forward
+    C-a space    cycle through layouts
+
+  WINDOWS
+    C-a c        new window (same dir)
+    C-a 1 .. 9   jump to window N
+    C-a n  p     next / previous
+    C-a ,        rename window
+    C-a &        close window
+    C-a w        pick from a list
+
+  SESSIONS
+    C-a d        detach  (tmux a to return)
+    C-a $        rename session
+    C-a s        pick from a list
+
+  COPY  /  MOUSE
+    C-a [        enter copy mode
+      v          start selection
+      y          yank to Windows clipboard
+      q          leave copy mode
+    drag         select + copy with mouse
+    click        focus pane / switch window
+
+  CONFIG
+    C-a r        reload ~/.tmux.conf
+    C-a ?        this cheatsheet
+    C-a /        every binding tmux knows
+
+  ──────────────────────────────────────
+  q to close
