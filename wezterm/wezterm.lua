@@ -54,6 +54,30 @@ config.mouse_bindings = {
 	},
 }
 
+-- Size the window to a fraction of the screen and center it there. The default
+-- window is 80x24 cells, which at this font size is a small box wherever Windows
+-- decides to drop it.
+--
+-- Not initial_cols/initial_rows: those are a fixed cell count, so the window
+-- would be a different fraction of each of the three monitors here (1920x1200
+-- and two 2560x1440), and they cannot center it. Reading the screen at the
+-- moment we place the window does both.
+local WINDOW_SCREEN_FRACTION = 0.8
+
+local function fit_window_to_screen(gui_window)
+	-- The screen with input focus, so this follows the window rather than always
+	-- targeting the primary monitor.
+	local screen = wezterm.gui.screens().active
+	local width = screen.width * WINDOW_SCREEN_FRACTION
+	local height = screen.height * WINDOW_SCREEN_FRACTION
+
+	gui_window:set_inner_size(width, height)
+	-- Both screen.x/y and set_position are in virtual-desktop coordinates, which
+	-- span all three monitors and are negative to the left of the primary, so the
+	-- centered offset has to be added to the target screen's own origin.
+	gui_window:set_position(screen.x + (screen.width - width) / 2, screen.y + (screen.height - height) / 2)
+end
+
 -- Text paste that never leaves the terminal. Claude Code's own Ctrl+V is an
 -- image-paste path, and on WSL it answers "is there an image on the clipboard?"
 -- by shelling out to powershell.exe with System.Windows.Forms -- measured at
@@ -78,32 +102,27 @@ config.keys = {
 	-- prompt reads it as "newline" with no protocol negotiation involved, and tmux
 	-- forwards it untouched as M-Enter.
 	{ key = "Enter", mods = "SHIFT", action = wezterm.action.SendString("\x1b\r") },
+
+	-- Re-run the startup placement on demand. Unplugging a monitor leaves Windows
+	-- to relocate the window, and with window_decorations = "RESIZE" there is no
+	-- titlebar to double-click and no maximize button to fix it with; the only
+	-- recovery was restarting WezTerm. The built-in ResetFontAndWindowSize is not
+	-- this: it restores initial_cols/initial_rows (unset here, so 80x24) and does
+	-- not move the window.
+	{
+		key = "Home",
+		mods = "CTRL|SHIFT",
+		action = wezterm.action_callback(function(window)
+			fit_window_to_screen(window)
+		end),
+	},
 }
 
--- Open centered at a fraction of the screen. The default window is 80x24 cells,
--- which at this font size is a small box wherever Windows decides to drop it.
---
--- Not initial_cols/initial_rows: those are a fixed cell count, so the window
--- would be a different fraction of each of the three monitors here (1920x1200
--- and two 2560x1440), and they cannot center it. Sizing in gui-startup reads the
--- screen it is actually opening on and does both.
---
 -- gui-startup fires once, for the window created at launch. Windows opened later
--- with CTRL+SHIFT+N still get the default size and OS placement.
-local WINDOW_SCREEN_FRACTION = 0.8
-
+-- with CTRL+SHIFT+N get the default size and OS placement until CTRL+SHIFT+Home.
 wezterm.on("gui-startup", function(cmd)
-	local screen = wezterm.gui.screens().active
-	local width = screen.width * WINDOW_SCREEN_FRACTION
-	local height = screen.height * WINDOW_SCREEN_FRACTION
-
 	local _, _, window = wezterm.mux.spawn_window(cmd or {})
-	local gui_window = window:gui_window()
-	gui_window:set_inner_size(width, height)
-	-- Both screen.x/y and set_position are in virtual-desktop coordinates, which
-	-- span all three monitors and are negative to the left of the primary, so the
-	-- centered offset has to be added to the target screen's own origin.
-	gui_window:set_position(screen.x + (screen.width - width) / 2, screen.y + (screen.height - height) / 2)
+	fit_window_to_screen(window:gui_window())
 end)
 
 -- Dim unfocused windows so the focused one is obvious at a glance.
