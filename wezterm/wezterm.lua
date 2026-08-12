@@ -45,12 +45,39 @@ config.window_background_opacity = 0.93
 -- look; switch this to "TITLE|RESIZE" if you would rather have the real titlebar.
 config.window_decorations = "RESIZE"
 
--- Drag the window from anywhere in the terminal body.
 config.mouse_bindings = {
+	-- Drag the window from anywhere in the terminal body.
 	{
 		event = { Drag = { streak = 1, button = "Left" } },
 		mods = "CTRL|SHIFT",
 		action = wezterm.action.StartWindowDrag,
+	},
+
+	-- CTRL+Click a link to open it in the default Windows browser. WezTerm already
+	-- opens links on an unmodified click, but every *default* mouse binding is
+	-- implicitly mouse_reporting = false -- it applies only while the application
+	-- is not reading the mouse. tmux runs with `set -g mouse on` permanently, so
+	-- the click was always delivered to tmux as a pane select and no link ever
+	-- opened. mouse_reporting = true is what makes WezTerm claim the event first.
+	--
+	-- CTRL rather than restoring plain click under reporting: an unmodified click
+	-- has to keep reaching tmux, or pane selection and drag-to-copy stop working.
+	-- CTRL+Click is also the habitual gesture from Windows Terminal and VS Code.
+	--
+	-- Down is bound to Nop separately. Claiming only Up still lets the press
+	-- through, so tmux would select whichever pane the link is in as a side effect
+	-- of opening it.
+	{
+		event = { Up = { streak = 1, button = "Left" } },
+		mods = "CTRL",
+		action = wezterm.action.OpenLinkAtMouseCursor,
+		mouse_reporting = true,
+	},
+	{
+		event = { Down = { streak = 1, button = "Left" } },
+		mods = "CTRL",
+		action = wezterm.action.Nop,
+		mouse_reporting = true,
 	},
 }
 
