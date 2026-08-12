@@ -50,7 +50,7 @@ setx WEZTERM_CONFIG_FILE "$env:USERPROFILE\dotfiles\wezterm\wezterm.lua"
 DOT=/mnt/c/Users/$USER/dotfiles          # adjust if the Windows username differs
 ln -sfn "$DOT/tmux/tmux.conf" ~/.tmux.conf
 mkdir -p ~/.tmux
-for f in cheatsheet.txt session.sh paste-from-windows.sh; do
+for f in cheatsheet.txt session.sh pick.sh paste-from-windows.sh; do
   ln -sfn "$DOT/tmux/$f" ~/.tmux/$f
 done
 ```
@@ -74,6 +74,24 @@ Then start tmux and press `prefix + I` (prefix is `C-a`).
 
 Every window opens an agent; quitting one leaves a shell behind rather than
 closing the window.
+
+`tmux/pick.sh` is the front door: an fzf list of live sessions merged with
+whatever tmux-resurrect has on disk, arrow keys and Enter, with a preview of each
+session's windows and directories. Picking a saved one restores it first.
+Detaching returns to the list; Escape leaves you at a shell.
+
+It needs two lines in `~/.zshrc`, which is **not** in this repo, so they do not
+travel with a `git pull`:
+
+```bash
+alias ts="$HOME/.tmux/pick.sh"
+
+# At the very bottom. The $TMUX test is what keeps it from firing inside every
+# new pane and split rather than only at WezTerm start.
+if [[ -o interactive && -z $TMUX && -t 1 ]]; then
+    "$HOME/.tmux/pick.sh"
+fi
+```
 
 ## Surviving a restart
 
