@@ -8,6 +8,7 @@ WezTerm + tmux configuration, shared across machines.
 wezterm/wezterm.lua   read by WezTerm on the Windows side
 tmux/tmux.conf        symlinked to ~/.tmux.conf inside WSL
 tmux/*.sh             symlinked into ~/.tmux/
+tmux/cheatsheet.txt   symlinked into ~/.tmux/, where which-key reads it
 ```
 
 ## Why the repo lives on the Windows filesystem
@@ -50,7 +51,7 @@ setx WEZTERM_CONFIG_FILE "$env:USERPROFILE\dotfiles\wezterm\wezterm.lua"
 DOT=/mnt/c/Users/$USER/dotfiles          # adjust if the Windows username differs
 ln -sfn "$DOT/tmux/tmux.conf" ~/.tmux.conf
 mkdir -p ~/.tmux
-for f in cheatsheet.txt session.sh pick.sh paste-from-windows.sh; do
+for f in cheatsheet.txt session.sh pick.sh; do
   ln -sfn "$DOT/tmux/$f" ~/.tmux/$f
 done
 ```
@@ -62,6 +63,19 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 ```
 
 Then start tmux and press `prefix + I` (prefix is `C-a`).
+
+`prefix + Space` opens tmux-which-key's menu, and its `?` entry is what displays
+`cheatsheet.txt`. That entry is not upstream, and it lives in the plugin's own
+`config.yaml` rather than in this repo - the plugin gitignores that file, so a
+fresh install comes up without it. Add it back in
+`~/.tmux/plugins/tmux-which-key/config.yaml`, after the `show-messages` item,
+and move the `+Keys` entry that holds `?` upstream over to `/`:
+
+```yaml
+  - name: Cheatsheet
+    key: '?'
+    command: 'display-popup -E -w 48 -h 90% -x R -y 1 "less -R ~/.tmux/cheatsheet.txt"'
+```
 
 ## Sessions
 
@@ -77,7 +91,8 @@ directory, so `cc` or `ccc` is what starts an agent in one.
 
 `tmux/pick.sh` is the front door: an fzf list of live sessions merged with
 whatever tmux-resurrect has on disk, arrow keys and Enter, with a preview of each
-session's windows and directories. Picking a saved one restores it first.
+session's windows and directories. Picking a saved one restores it first, and the
+`+ new session` row at the bottom asks for a name and hands off to `session.sh`.
 Detaching returns to the list; Escape leaves you at a shell.
 
 It needs two lines in `~/.zshrc`, which is **not** in this repo, so they do not
@@ -121,6 +136,8 @@ Restore is manual on purpose - see the comment above `@continuum-restore` in
 
 - `.gitattributes` pins `eol=lf`. The repo lives on NTFS but `tmux/*.sh` run
   under bash, and CRLF line endings break the shebang.
-- `wezterm.lua` sets `default_domain = "WSL:Ubuntu"`. That is the only
-  machine-specific line; it needs a guard if this is ever used on macOS or
-  native Linux.
+- `wezterm.lua` sets `default_domain = "WSL:Ubuntu"`. That is the one line that
+  has to change if this is ever used on macOS or native Linux. `font_size` is
+  the other machine-specific value - it is translated to Windows' 96 DPI
+  baseline and nudged up for the 27" 1440p primary, so it is worth revisiting
+  per display rather than guarding.

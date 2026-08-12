@@ -1,7 +1,7 @@
 
   TMUX KEYS              prefix = C-a
   ──────────────────────────────────────
-  C-a C-a  sends a literal C-a to bash
+  C-a C-a  sends a literal C-a to zsh
            (beginning-of-line still works)
 
   PANES
@@ -12,10 +12,12 @@
     C-a x        close pane
     C-a M-← ↑ ↓ →  resize by 5
     C-a { }      swap pane back / forward
-    C-a space    cycle through layouts
+    C-a M-1..5   preset layouts
 
   WINDOWS
     C-a c        new window (same dir)
+    C-a g        new window, dir from zoxide
+    M-1 .. 6     jump without the prefix
     C-a 1 .. 9   jump to window N
     C-a n  p     next / previous
     C-a ,        rename window
@@ -23,9 +25,12 @@
     C-a w        pick from a list
 
   SESSIONS
-    C-a d        detach  (tmux a to return)
+    ts           the session picker
+    C-a d        detach  (ts to return)
     C-a $        rename session
     C-a s        pick from a list
+    C-a C-s      save every session
+    C-a C-r      restore them
 
   COPY  /  MOUSE
     C-a [        enter copy mode
@@ -37,8 +42,10 @@
 
   CONFIG
     C-a r        reload ~/.tmux.conf
-    C-a ?        this cheatsheet
-    C-a /        every binding tmux knows
+    C-a space    menu (which-key)
+      ?          this cheatsheet
+    C-a ?        every binding tmux knows
+    C-a /        describe one key
 
   ──────────────────────────────────────
   q to close

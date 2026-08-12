@@ -7,8 +7,8 @@ local config = wezterm.config_builder()
 
 -- The whole point of running WezTerm natively rather than under WSLg: the window
 -- is a Windows window (so DWM composites it, which is what makes the
--- transparency and Acrylic below actually work), while the shell is still bash
--- in Ubuntu. Everything inside the terminal is unchanged from before.
+-- transparency below actually work), while the shell is still zsh in Ubuntu.
+-- Everything inside the terminal is unchanged from before.
 config.default_domain = "WSL:Ubuntu"
 
 config.color_scheme = "rose-pine-moon"
