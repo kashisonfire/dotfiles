@@ -9,6 +9,7 @@ wezterm/wezterm.lua   read by WezTerm on the Windows side
 tmux/tmux.conf        symlinked to ~/.tmux.conf inside WSL
 tmux/*.sh             symlinked into ~/.tmux/
 tmux/cheatsheet.txt   symlinked into ~/.tmux/, where which-key reads it
+tmux/agent-status.py  symlinked into ~/.claude/hooks/, run by Claude Code
 ```
 
 ## Why the repo lives on the Windows filesystem
@@ -56,7 +57,30 @@ for f in cheatsheet.txt session.sh pick.sh; do
 done
 ```
 
-**4. Install tmux plugins**
+**4. Wire up the agent status hooks** (WSL)
+
+```bash
+mkdir -p ~/.claude/hooks
+ln -sfn "$DOT/tmux/agent-status.py" ~/.claude/hooks/agent-status.py
+```
+
+Then add this to `~/.claude/settings.json`, which is **not** in this repo, so it
+does not travel with a `git pull`. All four events run the same script:
+
+```json
+"hooks": {
+  "SessionStart":  [{ "hooks": [{ "type": "command", "command": "python3 \"$HOME/.claude/hooks/agent-status.py\"" }] }],
+  "Stop":          [{ "hooks": [{ "type": "command", "command": "python3 \"$HOME/.claude/hooks/agent-status.py\"" }] }],
+  "SubagentStop":  [{ "hooks": [{ "type": "command", "command": "python3 \"$HOME/.claude/hooks/agent-status.py\"" }] }],
+  "SessionEnd":    [{ "hooks": [{ "type": "command", "command": "python3 \"$HOME/.claude/hooks/agent-status.py\"" }] }]
+}
+```
+
+Nothing breaks without it: the window list falls back to the glyph Claude Code
+puts in its own terminal title, which is what the bar read before these hooks
+existed. What it loses is the `●N` badge, described under Reading the bar.
+
+**5. Install tmux plugins**
 
 ```bash
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
@@ -76,6 +100,31 @@ and move the `+Keys` entry that holds `?` upstream over to `/`:
     key: '?'
     command: 'display-popup -E -w 48 -h 90% -x R -y 1 "less -R ~/.tmux/cheatsheet.txt"'
 ```
+
+## Reading the bar
+
+Each window in the status bar is its index, a state marker, and a label.
+
+```
+ 3 ◐ Fix tmux status for run…     working
+ 3 ✳ Fix tmux status for run…     idle, nothing pending
+ 3 ●2 Fix tmux status for run…    two background agents or workflows still running
+ 3 ✳ Fix tmux status for run…!    rang the bell: finished, or waiting on a prompt
+ 3 apartments-web                 no agent in this window, so its directory
+```
+
+`◐` and `✳` come from Claude Code's own terminal title and track its main loop.
+`●N` is the part the title cannot express: work handed to a background subagent or
+a workflow outlives the turn that launched it, so without the badge those windows
+drop back to `✳` and read as finished while several agents are still going. It
+counts subagents and workflows, not background shells, since a dev server never
+finishes. Panes are counted individually, so two agents split into one window show
+up as `●1●1`.
+
+The label is the conversation's topic, which Claude Code generates once when the
+subject first becomes clear, so it names the subject rather than the current
+activity, and it can lag behind where a long session ended up. `/rename` in a
+session sets it, and short names survive the truncation better.
 
 ## Sessions
 

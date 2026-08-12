@@ -1,2 +1,5 @@
 # TPM clones these itself; reinstall with prefix + I
 plugins/
+
+# Written by any local python run, never by the hook itself
+__pycache__/
