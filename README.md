@@ -50,7 +50,7 @@ setx WEZTERM_CONFIG_FILE "$env:USERPROFILE\dotfiles\wezterm\wezterm.lua"
 DOT=/mnt/c/Users/$USER/dotfiles          # adjust if the Windows username differs
 ln -sfn "$DOT/tmux/tmux.conf" ~/.tmux.conf
 mkdir -p ~/.tmux
-for f in cheatsheet.txt dev-session.sh paste-from-windows.sh; do
+for f in cheatsheet.txt session.sh paste-from-windows.sh; do
   ln -sfn "$DOT/tmux/$f" ~/.tmux/$f
 done
 ```
@@ -62,6 +62,37 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 ```
 
 Then start tmux and press `prefix + I` (prefix is `C-a`).
+
+## Sessions
+
+`tmux/session.sh` creates a session or attaches to it if it already exists.
+
+```bash
+~/.tmux/session.sh -n 5 cpna              # 5 agent windows in ~/code
+~/.tmux/session.sh dev ~/code/apartments-web ~/code/apartments-cpna
+```
+
+Every window opens an agent; quitting one leaves a shell behind rather than
+closing the window.
+
+## Surviving a restart
+
+Detaching is free - the tmux server is an ordinary process and WSL keeps the VM
+alive while it runs, so closing WezTerm does not end the session. `wsl
+--shutdown` and a Windows restart do.
+
+Nothing can preserve a live process across that, so tmux-resurrect saves the
+shape instead: windows, panes, layout, per-pane working directory, and
+scrollback. tmux-continuum snapshots it every 15 minutes.
+
+```
+prefix + C-s    save now
+prefix + C-r    restore
+```
+
+Restore is manual on purpose - see the comment above `@continuum-restore` in
+`tmux.conf`. Restored agent panes come back as shells in the right directory;
+`claude --continue` resumes that directory's last conversation.
 
 ## Syncing
 
