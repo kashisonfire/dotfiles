@@ -68,12 +68,12 @@ Then start tmux and press `prefix + I` (prefix is `C-a`).
 `tmux/session.sh` creates a session or attaches to it if it already exists.
 
 ```bash
-~/.tmux/session.sh -n 5 cpna              # 5 agent windows in ~/code
+~/.tmux/session.sh -n 5 cpna              # 5 windows in ~/code
 ~/.tmux/session.sh dev ~/code/apartments-web ~/code/apartments-cpna
 ```
 
-Every window opens an agent; quitting one leaves a shell behind rather than
-closing the window.
+It builds the shape and nothing else: windows are left at a shell in their
+directory, so `cc` or `ccc` is what starts an agent in one.
 
 `tmux/pick.sh` is the front door: an fzf list of live sessions merged with
 whatever tmux-resurrect has on disk, arrow keys and Enter, with a preview of each
